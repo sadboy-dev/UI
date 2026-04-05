@@ -1,2 +1,2 @@
 -- Loader
-loadstring(game:HttpGet("https://link-file-base-kamu-disini"))()
+loadstring(game:HttpGet("https://raw.githubusercontent.com/sadboy-dev/UI/refs/heads/main/Jriik/Base.lua"))()
