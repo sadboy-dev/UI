@@ -456,3 +456,32 @@ end)
 CloseBtn.MouseButton1Click:Connect(function()
     ScreenGui:Destroy()
 end)
+
+
+-- =============================================
+-- FITUR DRAG ICON BULAT (SUPPORT MOBILE)
+-- =============================================
+local DraggingIcon = false
+local DragStartIcon = Vector2.new()
+local StartPosIcon = UDim2.new()
+
+IconButton.InputBegan:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+        DraggingIcon = true
+        DragStartIcon = Vector2.new(input.Position.X, input.Position.Y)
+        StartPosIcon = IconButton.Position
+    end
+end)
+
+UserInputService.InputChanged:Connect(function(input)
+    if DraggingIcon and (input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch) then
+        local Delta = Vector2.new(input.Position.X, input.Position.Y) - DragStartIcon
+        IconButton.Position = UDim2.new(StartPosIcon.X.Scale, StartPosIcon.X.Offset + Delta.X, StartPosIcon.Y.Scale, StartPosIcon.Y.Offset + Delta.Y)
+    end
+end)
+
+UserInputService.InputEnded:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+        DraggingIcon = false
+    end
+end)
