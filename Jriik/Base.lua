@@ -1,11 +1,22 @@
 -- Base
+
+-- Services
+local Players = game:GetService("Players")
+local LocalPlayer = Players.LocalPlayer
+local Mouse = LocalPlayer:GetMouse()
+
+-- =============================================
+-- MEMBUAT GUI UTAMA
+-- =============================================
 local ScreenGui = Instance.new("ScreenGui")
 local MainFrame = Instance.new("Frame")
 local ContentArea = Instance.new("Frame")
 
+-- SETTING SCREEN GUI
 ScreenGui.Parent = game.CoreGui
 ScreenGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
 
+-- SETTING KOTAK UTAMA
 MainFrame.Name = "MainFrame"
 MainFrame.Parent = ScreenGui
 MainFrame.BackgroundColor3 = Color3.new(0.05, 0.05, 0.05)
@@ -14,14 +25,18 @@ MainFrame.BorderColor3 = Color3.new(1, 1, 1)
 MainFrame.BorderSizePixel = 1
 MainFrame.Position = UDim2.new(0.05, 0, 0.1, 0)
 MainFrame.Size = UDim2.new(0, 350, 0, 280)
-MainFrame.Visible = false
+MainFrame.Visible = true -- <-- UBAH JADI TRUE BIAR LANGSUNG MUNCUL
 
+-- SETTING AREA KONTEN
 ContentArea.Name = "ContentArea"
 ContentArea.Parent = MainFrame
 ContentArea.BackgroundTransparency = 1
 ContentArea.Position = UDim2.new(0, 5, 0, 50)
 ContentArea.Size = UDim2.new(1, -10, 1, -55)
 
+-- =============================================
+-- FUNGSI BUAT FRAME BARU
+-- =============================================
 local function CreateFrame(name)
     local frame = Instance.new("Frame")
     frame.Name = name
@@ -32,6 +47,7 @@ local function CreateFrame(name)
     return frame
 end
 
+-- MEMBUAT FRAME UNTUK SETIAP MENU
 local MyselfFrame = CreateFrame("Myself")
 local OnlineFrame = CreateFrame("Online")
 local WeaponFrame = CreateFrame("Weapon")
