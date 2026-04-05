@@ -459,24 +459,29 @@ end)
 
 
 -- =============================================
--- FITUR DRAG ICON BULAT (SUPPORT MOBILE)
+-- FITUR DRAG ICON BULAT (FIXED)
 -- =============================================
 local DraggingIcon = false
-local DragStartIcon = Vector2.new()
-local StartPosIcon = UDim2.new()
+local DragStartIcon, StartPosIcon
 
 IconButton.InputBegan:Connect(function(input)
     if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
         DraggingIcon = true
-        DragStartIcon = Vector2.new(input.Position.X, input.Position.Y)
+        DragStartIcon = input.Position
         StartPosIcon = IconButton.Position
+        input:Destroy() -- Hapus event biar tidak ganggu
     end
 end)
 
 UserInputService.InputChanged:Connect(function(input)
-    if DraggingIcon and (input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch) then
-        local Delta = Vector2.new(input.Position.X, input.Position.Y) - DragStartIcon
-        IconButton.Position = UDim2.new(StartPosIcon.X.Scale, StartPosIcon.X.Offset + Delta.X, StartPosIcon.Y.Scale, StartPosIcon.Y.Offset + Delta.Y)
+    if DraggingIcon then
+        local Delta = input.Position - DragStartIcon
+        IconButton.Position = UDim2.new(
+            StartPosIcon.X.Scale, 
+            StartPosIcon.X.Offset + Delta.X, 
+            StartPosIcon.Y.Scale, 
+            StartPosIcon.Y.Offset + Delta.Y
+        )
     end
 end)
 
