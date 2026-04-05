@@ -176,9 +176,8 @@ CloseBtn.MouseButton1Click:Connect(function()
 end)
 
 -- =============================================
--- 🔍 SCAN & LOAD FITUR DARI VARIABLE "Features"
+-- 🔧 SISTEM DETEKSI KOLOM & TIPE
 -- =============================================
--- Cek apakah variabel Features sudah ada di memory
 if type(Features) == "table" then
     local Tabs = {}
     local TabX = 5
@@ -205,43 +204,96 @@ if type(Features) == "table" then
         
         TabX = TabX + 45
 
-        -- BUAT ISI TOMBOL
-        local YPos = 20
-        local function MakeBtn(name, func)
-            local btn = Instance.new("TextButton")
-            btn.Parent = NewFrame
-            btn.BackgroundColor3 = Color3.new(0.2, 0.2, 0.2)
-            btn.BorderColor3 = Color3.new(1, 1, 1)
-            btn.BorderSizePixel = 1
-            btn.Position = UDim2.new(0, 10, 0, YPos)
-            btn.Size = UDim2.new(0, 150, 0, 30)
-            btn.Font = Enum.Font.GothamBold
-            btn.Text = name
-            btn.TextColor3 = Color3.new(1, 1, 1)
-            btn.TextSize = 10
-            btn.MouseButton1Click:Connect(func)
-            YPos = YPos + 40
-            return btn
-        end
+        -- =============================================
+        -- CEK APAKAH PAKAI LAYOUT KHUSUS
+        -- =============================================
+        if Category.Layout then
+            -- JALANKAN SISTEM KOLOM
+            local Layouts = Category.Layout
+            local Count = #Layouts
+            local WidthPerCol = (330 / Count) - 5 -- Hitung lebar otomatis
 
-        -- JUDUL
-        local Title = Instance.new("TextLabel")
-        Title.Parent = NewFrame
-        Title.BackgroundTransparency = 1
-        Title.Size = UDim2.new(1, 0, 0, 20)
-        Title.Font = Enum.Font.GothamBold
-        Title.Text = Category.Name .. " Settings"
-        Title.TextColor3 = Color3.new(1, 1, 1)
-        Title.TextSize = 12
+            for i, Col in pairs(Layouts) do
+                local ColFrame = Instance.new("Frame")
+                ColFrame.Name = Col.Type
+                ColFrame.Parent = NewFrame
+                ColFrame.BackgroundColor3 = Color3.new(0.1, 0.1, 0.1)
+                ColFrame.BackgroundTransparency = 0.2
+                ColFrame.BorderColor3 = Color3.new(1, 1, 1)
+                ColFrame.BorderSizePixel = 1
+                ColFrame.Position = UDim2.new(0, (i-1)*(WidthPerCol+5), 0, 5)
+                ColFrame.Size = UDim2.new(0, WidthPerCol, 1, -10)
 
-        -- MASUKIN ITEM
-        for _, Item in pairs(Category.Items) do
-            MakeBtn(Item.Text, Item.Func)
+                -- JUDUL KOLOM
+                local Title = Instance.new("TextLabel")
+                Title.Parent = ColFrame
+                Title.BackgroundTransparency = 1
+                Title.Size = UDim2.new(1, 0, 0, 20)
+                Title.Font = Enum.Font.GothamBold
+                Title.Text = Col.Title or Col.Type
+                Title.TextColor3 = Color3.new(1, 1, 1)
+                Title.TextSize = 10
+
+                -- AREA ISI
+                local Content = Instance.new("Frame")
+                Content.Name = "Content"
+                Content.Parent = ColFrame
+                Content.BackgroundTransparency = 1
+                Content.Position = UDim2.new(0, 5, 0, 25)
+                Content.Size = UDim2.new(1, -10, 1, -30)
+
+                -- SIMPAN REFERENSI AGAR BISA DIISI DI SCRIPT UTAMA
+                Col.Instance = Content
+            end
+
+            -- JALANKAN FUNGSI CUSTOM JIKA ADA
+            if Category.OnBuild then
+                Category.OnBuild(NewFrame)
+            end
+
+        else
+            -- =============================================
+            -- TAMPILAN BIASA (1 KOLOM TOMBOL)
+            -- =============================================
+            local YPos = 20
+            local function MakeBtn(name, func)
+                local btn = Instance.new("TextButton")
+                btn.Parent = NewFrame
+                btn.BackgroundColor3 = Color3.new(0.2, 0.2, 0.2)
+                btn.BorderColor3 = Color3.new(1, 1, 1)
+                btn.BorderSizePixel = 1
+                btn.Position = UDim2.new(0, 10, 0, YPos)
+                btn.Size = UDim2.new(0, 150, 0, 30)
+                btn.Font = Enum.Font.GothamBold
+                btn.Text = name
+                btn.TextColor3 = Color3.new(1, 1, 1)
+                btn.TextSize = 10
+                btn.MouseButton1Click:Connect(func)
+                YPos = YPos + 40
+                return btn
+            end
+
+            -- JUDUL
+            local Title = Instance.new("TextLabel")
+            Title.Parent = NewFrame
+            Title.BackgroundTransparency = 1
+            Title.Size = UDim2.new(1, 0, 0, 20)
+            Title.Font = Enum.Font.GothamBold
+            Title.Text = Category.Name .. " Settings"
+            Title.TextColor3 = Color3.new(1, 1, 1)
+            Title.TextSize = 12
+
+            -- MASUKIN ITEM
+            if Category.Items then
+                for _, Item in pairs(Category.Items) do
+                    MakeBtn(Item.Text, Item.Func)
+                end
+            end
         end
     end
 
     -- SET DEFAULT TAB
     if Tabs[1] then Tabs[1].Frame.Visible = true end
 else
-    warn("Variabel 'Features' tidak ditemukan atau kosong!")
+    warn("Variabel 'Features' tidak ditemukan!")
 end
