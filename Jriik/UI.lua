@@ -176,7 +176,7 @@ CloseBtn.MouseButton1Click:Connect(function()
 end)
 
 -- =============================================
--- 🔧 SISTEM DETEKSI KOLOM & TIPE
+-- 🔧 SISTEM DETEKSI KOLOM & TIPE (FIXED WIDTH)
 -- =============================================
 if type(Features) == "table" then
     local Tabs = {}
@@ -211,7 +211,11 @@ if type(Features) == "table" then
             -- JALANKAN SISTEM KOLOM
             local Layouts = Category.Layout
             local Count = #Layouts
-            local WidthPerCol = (330 / Count) - 5 -- Hitung lebar otomatis
+            local TotalWidth = 330 -- Lebar total area konten
+            local Gap = 5 -- Jarak antar kolom
+            
+            -- Hitung lebar per kolom (total lebar dikurangi jarak)
+            local ColWidth = (TotalWidth - (Gap * (Count - 1))) / Count
 
             for i, Col in pairs(Layouts) do
                 local ColFrame = Instance.new("Frame")
@@ -221,8 +225,9 @@ if type(Features) == "table" then
                 ColFrame.BackgroundTransparency = 0.2
                 ColFrame.BorderColor3 = Color3.new(1, 1, 1)
                 ColFrame.BorderSizePixel = 1
-                ColFrame.Position = UDim2.new(0, (i-1)*(WidthPerCol+5), 0, 5)
-                ColFrame.Size = UDim2.new(0, WidthPerCol, 1, -10)
+                -- Hitung posisi X otomatis biar rata
+                ColFrame.Position = UDim2.new(0, ((i-1) * (ColWidth + Gap)) + 5, 0, 5)
+                ColFrame.Size = UDim2.new(0, ColWidth, 1, -10)
 
                 -- JUDUL KOLOM
                 local Title = Instance.new("TextLabel")
