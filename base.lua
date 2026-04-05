@@ -22,13 +22,13 @@ local CurrentTab = "Myself"
 -- =============================================
 local ScreenGui = Instance.new("ScreenGui")
 local MainFrame = Instance.new("Frame")
-local Header = Instance.new("TextLabel")
 local ContentArea = Instance.new("Frame")
 
 -- Properties
 ScreenGui.Parent = game.CoreGui
 ScreenGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
 
+-- KOTAK UTAMA
 MainFrame.Name = "MainFrame"
 MainFrame.Parent = ScreenGui
 MainFrame.BackgroundColor3 = Color3.new(0.05, 0.05, 0.05)
@@ -38,20 +38,6 @@ MainFrame.BorderSizePixel = 1
 MainFrame.Position = UDim2.new(0.05, 0, 0.1, 0)
 MainFrame.Size = UDim2.new(0, 350, 0, 280)
 MainFrame.Visible = false
-
--- HEADER / BAGIAN ATAS
--- Kotak tetap penuh, tulisan dikasih space
-Header.Name = "Header"
-Header.Parent = MainFrame
-Header.BackgroundColor3 = Color3.new(0.1, 0.1, 0.1)
-Header.BorderColor3 = Color3.new(1, 1, 1)
-Header.BorderSizePixel = 1
-Header.Size = UDim2.new(1, 0, 0, 25)
-Header.Font = Enum.Font.GothamBold
-Header.Text = "  Jriik | UI"
-Header.TextColor3 = Color3.new(1, 1, 1)
-Header.TextSize = 12
-Header.TextXAlignment = Enum.TextXAlignment.Left
 
 -- AREA KONTEN (TEMPAT ISI MENU)
 ContentArea.Name = "ContentArea"
