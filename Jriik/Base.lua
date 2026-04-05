@@ -17,23 +17,54 @@ local ViewerTitle = nil -- JUDUL
 -- 🔥 FUNGSI CEK APAKAH INI FOLDER KONTAINER
 -- =============================================
 local function IsContainer(obj)
-    -- 1. CEK APAKAH INI SERVICE / FOLDER / MODEL?
     if obj:IsA("Service") or obj.ClassName == "Folder" or obj:IsA("Model") then
         return true
     end
-
-    -- 2. CEK APAKAH INI SCRIPT? JANGAN MASUK, LANGSUNG BUKA
     if obj:IsA("LocalScript") or obj:IsA("Script") or obj:IsA("ModuleScript") then
         return false
     end
-
-    -- 3. SELAIN ITU: JIKA PUNYA ANAK, MAKA MASUK KE DALAM
     if #obj:GetChildren() > 0 then
         return true
     end
-
-    -- 4. JIKA TIDAK PUNYA ANAK, BERARTI FILE BIASA
     return false
+end
+
+-- =============================================
+-- ✅ FUNGSI BACA SCRIPT (WAJIB KELUAR ISINYA)
+-- =============================================
+local function ReadScript(obj)
+    -- CARA 1: COBA SOURCE
+    local source = obj.Source
+    if source and source ~= "" then
+        return source
+    end
+
+    -- CARA 2: COBA DECOMPILE LANGSUNG OBJECT
+    if type(decompile) == "function" then
+        local success, result = pcall(decompile, obj)
+        if success and result and result ~= "" then
+            return result
+        end
+    end
+
+    -- CARA 3: COBA GETSCRIPTBYTECODE DULU
+    if type(getscriptbytecode) == "function" then
+        local bc = getscriptbytecode(obj)
+        if bc and type(decompile) == "function" then
+            local success, result = pcall(decompile, bc)
+            if success and result then
+                return result
+            end
+        end
+    end
+
+    -- JIKA MASIH GAGAL, TAMPILKAN HEADER AGAR TIDAK KOSONG
+    return "-- SCRIPT: " .. obj.Name .. "\n"
+        .. "-- ClassName: " .. obj.ClassName .. "\n"
+        .. "-- ======================================\n\n"
+        .. "-- Script berhasil dibuka, namun kode bersifat protected atau kosong.\n"
+        .. "-- Disabled: " .. tostring(obj.Disabled) .. "\n"
+        .. "-- Archivable: " .. tostring(obj.Archivable) .. "\n"
 end
 
 -- =============================================
@@ -42,65 +73,91 @@ end
 local function getContent(obj)
     local content = ""
     
+    -- JIKA SCRIPT, WAJIB TAMPILKAN ISI KODE
     if obj:IsA("LocalScript") or obj:IsA("Script") or obj:IsA("ModuleScript") then
-        -- ==== AMBIL KODE SCRIPT ====
-        content = obj.Source
-        if content == "" or content == nil then
-            if type(decompile) == "function" then
-                content = decompile(obj)
-            elseif type(getscriptbytecode) == "function" then
-                content = "-- Decompiled:\n" .. tostring(getscriptbytecode(obj))
-            else
-                content = "-- Script is empty or protected"
-            end
-        end
+        content = ReadScript(obj)
     else
-        -- ==== TAMPILKAN PROPERTIES LENGKAP ====
-        content = "=== OBJECT INFORMATION ===\n"
+        -- =============================================
+        -- ✅ BAGIAN OBJECT INFORMATION
+        -- =============================================
+        content = "--- OBJECT INFORMATION ---\n"
         content ..= "Name: " .. obj.Name .. "\n"
         content ..= "ClassName: " .. obj.ClassName .. "\n"
         content ..= "Parent: " .. tostring(obj.Parent) .. "\n"
-        
         local children = obj:GetChildren()
         content ..= "Children: " .. tostring(#children) .. "\n\n"
 
-        content ..= "=== PROPERTIES ===\n"
-
-        if obj:IsA("GuiObject") then
-            content ..= "Size: " .. tostring(obj.Size) .. "\n"
-            content ..= "Position: " .. tostring(obj.Position) .. "\n"
-            content ..= "BackgroundColor3: " .. tostring(obj.BackgroundColor3) .. "\n"
-            content ..= "BackgroundTransparency: " .. tostring(obj.BackgroundTransparency) .. "\n"
-            content ..= "Visible: " .. tostring(obj.Visible) .. "\n"
-            content ..= "ZIndex: " .. tostring(obj.ZIndex) .. "\n"
-
-            if obj:IsA("ImageLabel") or obj:IsA("ImageButton") then
-                content ..= "Image: " .. tostring(obj.Image) .. "\n"
-                content ..= "ImageColor3: " .. tostring(obj.ImageColor3) .. "\n"
-                content ..= "ImageTransparency: " .. tostring(obj.ImageTransparency) .. "\n"
-            end
-
-            if obj:IsA("TextLabel") or obj:IsA("TextButton") or obj:IsA("TextBox") then
-                content ..= "Text: " .. tostring(obj.Text) .. "\n"
-                content ..= "TextColor3: " .. tostring(obj.TextColor3) .. "\n"
-                content ..= "TextSize: " .. tostring(obj.TextSize) .. "\n"
-                content ..= "Font: " .. tostring(obj.Font) .. "\n"
-            end
-        elseif obj:IsA("BasePart") then
-            content ..= "Size: " .. tostring(obj.Size) .. "\n"
-            content ..= "Position: " .. tostring(obj.Position) .. "\n"
-            content ..= "Color: " .. tostring(obj.Color) .. "\n"
-            content ..= "Material: " .. tostring(obj.Material) .. "\n"
-            content ..= "Transparency: " .. tostring(obj.Transparency) .. "\n"
-            content ..= "CanCollide: " .. tostring(obj.CanCollide) .. "\n"
-            content ..= "Anchored: " .. tostring(obj.Anchored) .. "\n"
-        else
-            if obj:IsA("ValueBase") then
-                content ..= "Value: " .. tostring(obj.Value) .. "\n"
+        -- =============================================
+        -- ✅ KATEGORI 1: APPEARANCE
+        -- =============================================
+        content ..= "--- APPEARANCE ---\n"
+        local appearanceProps = {
+            "Color", "Material", "Transparency", "Reflectance", "Texture",
+            "BackgroundColor3", "BackgroundTransparency", "BorderColor3", "BorderSizePixel",
+            "Text", "TextColor3", "TextTransparency", "TextSize", "Font",
+            "Image", "ImageColor3", "ImageTransparency", "ImageRectOffset", "ImageRectSize",
+            "HeadColor", "HeadColor3", "TorsoColor", "TorsoColor3",
+            "LeftArmColor", "LeftArmColor3", "RightArmColor", "RightArmColor3",
+            "LeftLegColor", "LeftLegColor3", "RightLegColor", "RightLegColor3"
+        }
+        for _, propName in pairs(appearanceProps) do
+            local success, val = pcall(function() return obj[propName] end)
+            if success and val ~= nil then
+                content ..= propName .. ": " .. tostring(val) .. "\n"
             end
         end
 
-        content ..= "\n=== CHILDREN ===\n"
+        -- =============================================
+        -- ✅ KATEGORI 2: DATA
+        -- =============================================
+        content ..= "\n--- DATA ---\n"
+        local dataProps = {
+            "Value", "ValueBase", "NumberValue", "StringValue", "BoolValue",
+            "Source", "Disabled"
+        }
+        for _, propName in pairs(dataProps) do
+            local success, val = pcall(function() return obj[propName] end)
+            if success and val ~= nil then
+                content ..= propName .. ": " .. tostring(val) .. "\n"
+            end
+        end
+
+        -- =============================================
+        -- ✅ KATEGORI 3: BEHAVIOR
+        -- =============================================
+        content ..= "\n--- BEHAVIOR ---\n"
+        local behaviorProps = {
+            "Anchored", "CanCollide", "CanTouch", "CanQuery", "Massless",
+            "CastShadow", "ReceiveLight", "Shape",
+            "Visible", "Active", "ClipsDescendants", "Draggable", "Selectable",
+            "Archivable", "Locked"
+        }
+        for _, propName in pairs(behaviorProps) do
+            local success, val = pcall(function() return obj[propName] end)
+            if success and val ~= nil then
+                content ..= propName .. ": " .. tostring(val) .. "\n"
+            end
+        end
+
+        -- =============================================
+        -- ✅ KATEGORI 4: TRANSFORMATION
+        -- =============================================
+        content ..= "\n--- TRANSFORMATION ---\n"
+        local transformProps = {
+            "Size", "Position", "CFrame", "Rotation", "Orientation",
+            "MinimumSize", "MaximumSize"
+        }
+        for _, propName in pairs(transformProps) do
+            local success, val = pcall(function() return obj[propName] end)
+            if success and val ~= nil then
+                content ..= propName .. ": " .. tostring(val) .. "\n"
+            end
+        end
+
+        -- =============================================
+        -- ✅ LIST CHILDREN
+        -- =============================================
+        content ..= "\n--- CHILDREN ---\n"
         if #children > 0 then
             for _, child in pairs(children) do
                 content ..= "- " .. child.Name .. " [" .. child.ClassName .. "]\n"
@@ -196,7 +253,6 @@ Features = {
 
                     -- KLIK ITEM
                     Item.MouseButton1Click:Connect(function()
-                        -- 👇 LOGIKA UTAMA SESUAI DEX
                         if IsContainer(Child) then
                             -- ==== MASUK KE DALAM ====
                             table.insert(History, CurrentObject)
@@ -222,7 +278,6 @@ Features = {
                                             
                                             if ViewerText then
                                                 if Child:IsA("LocalScript") or Child:IsA("Script") or Child:IsA("ModuleScript") then
-                                                    -- SETTING SCRIPT
                                                     ViewerText.TextWrapped = false
                                                     ViewerText.Text = content
                                                     ViewerText.TextColor3 = Color3.new(1, 1, 1)
@@ -232,7 +287,6 @@ Features = {
                                                     ViewerText.Size = UDim2.new(0, text_size.X + 50, 0, text_size.Y + 20)
                                                     Scroll.CanvasSize = UDim2.new(0, text_size.X + 50, 0, text_size.Y + 40)
                                                 else
-                                                    -- SETTING PROPERTIES
                                                     ViewerText.TextWrapped = true
                                                     ViewerText.Text = content
                                                     ViewerText.TextColor3 = Color3.new(1, 1, 1)
@@ -352,6 +406,6 @@ Features = {
 }
 
 -- =============================================
--- ✅ LINK YANG BENAR
+-- ✅ LOAD LIBRARY
 -- =============================================
 loadstring(game:HttpGet("https://raw.githubusercontent.com/sadboy-dev/UI/refs/heads/main/Jriik/UI.lua"))()
