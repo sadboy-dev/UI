@@ -372,3 +372,87 @@ do
     lbl.TextColor3 = Color3.new(1,1,1)
     lbl.TextSize = 12
 end
+
+-- Bagian 3: Tabs, Drag & Fungsi
+
+-- =============================================
+-- SISTEM TABS / MENU
+-- =============================================
+local Tabs = {
+    {Name="Myself", Frame=MyselfFrame},
+    {Name="Online", Frame=OnlineFrame},
+    {Name="Weapon", Frame=WeaponFrame},
+    {Name="Vehicle", Frame=VehicleFrame},
+    {Name="Visuals", Frame=VisualsFrame},
+    {Name="Lua", Frame=LuaFrame},
+    {Name="Resources", Frame=ResourcesFrame},
+    {Name="Config", Frame=ConfigFrame}
+}
+
+local TabX = 5
+for i, data in pairs(Tabs) do
+    local TabBtn = Instance.new("TextButton")
+    TabBtn.Parent = MainFrame
+    TabBtn.BackgroundTransparency = 1
+    TabBtn.Position = UDim2.new(0, TabX, 0, 28)
+    TabBtn.Size = UDim2.new(0, 40, 0, 18)
+    TabBtn.Font = Enum.Font.Gotham
+    TabBtn.Text = data.Name
+    TabBtn.TextColor3 = Color3.new(1, 1, 1)
+    TabBtn.TextSize = 9
+
+    TabBtn.MouseButton1Click:Connect(function()
+        for _, d in pairs(Tabs) do d.Frame.Visible = false end
+        data.Frame.Visible = true
+    end)
+
+    TabX = TabX + 42
+end
+
+-- SET DEFAULT TAB
+MyselfFrame.Visible = true
+
+-- =============================================
+-- FITUR DRAG / SERET (SUPPORT MOBILE)
+-- =============================================
+local Dragging = false
+local DragStart = Vector2.new()
+local StartPos = UDim2.new()
+
+Header.InputBegan:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+        Dragging = true
+        DragStart = Vector2.new(input.Position.X, input.Position.Y)
+        StartPos = MainFrame.Position
+    end
+end)
+
+UserInputService.InputChanged:Connect(function(input)
+    if Dragging and (input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch) then
+        local Delta = Vector2.new(input.Position.X, input.Position.Y) - DragStart
+        MainFrame.Position = UDim2.new(StartPos.X.Scale, StartPos.X.Offset + Delta.X, StartPos.Y.Scale, StartPos.Y.Offset + Delta.Y)
+    end
+end)
+
+UserInputService.InputEnded:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+        Dragging = false
+    end
+end)
+
+-- =============================================
+-- FUNGSI MINIMIZE & CLOSE
+-- =============================================
+MinimizeBtn.MouseButton1Click:Connect(function()
+    MainFrame.Visible = false
+    IconButton.Visible = true
+end)
+
+IconButton.MouseButton1Click:Connect(function()
+    MainFrame.Visible = true
+    IconButton.Visible = false
+end)
+
+CloseBtn.MouseButton1Click:Connect(function()
+    ScreenGui:Destroy()
+end)
